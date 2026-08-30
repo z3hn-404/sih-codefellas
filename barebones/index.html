@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scam Detector</title>
+</head>
+<body>
+    <h1>Scam Detector</h1>
+    
+    <form id="scamForm">
+        <textarea id="userInput" rows="6" cols="50" placeholder="Paste message here..." required></textarea>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <div id="result-container" style="margin-top: 20px;">
+        <h2 id="scamResult"></h2>
+        <p><strong>Extracted Links:</strong></p>
+        <pre id="linksResult" style="background: #f4f4f4; padding: 10px;"></pre>
+        <p><strong>Analysis Details:</strong></p>
+        <p id="detailsResult" style="white-space: pre-line;"></p>
+    </div>
+
+    <script>
+        document.getElementById('scamForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const textValue = document.getElementById('userInput').value;
+            
+            document.getElementById('scamResult').innerText = "Analyzing...";
+            document.getElementById('linksResult').innerText = "";
+            document.getElementById('detailsResult').innerText = "";
+
+            const response = await fetch('http://127.0.0.1:8000/detect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: textValue })
+            });
+
+            const data = await response.json();
+            
+            document.getElementById('scamResult').innerText = "Scam: " + data.scam;
+            document.getElementById('linksResult').innerText = data.links;
+            document.getElementById('detailsResult').innerText = data.details;
+        });
+    </script>
+</body>
+</html>
