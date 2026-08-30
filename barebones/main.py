@@ -1,12 +1,13 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from google import genai
 import re
 import cv2
 from pyzbar.pyzbar import decode
 import pytesseract
 import numpy as np
+import requests
+import os
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
@@ -20,10 +21,43 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = genai.Client(api_key="API-KEY")
+client = genai.Client(api_key="GEMINI-API-KEY")
 
-class ScamRequest(BaseModel):
-    text: str
+GSB_API_KEY = os.getenv("GSB_API_KEY", "GSB-API-KEY")  # Replace with your actual Google Safe Browsing API key or set it as an environment variable
+
+def check_url_safety(url: str) -> str:
+    """Cross-checks a single URL against the Google Safe Browsing API v4. 
+    Returns 'Unknown' if network or API issues occur so the program proceeds smoothly."""
+    endpoint = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={GSB_API_KEY}"
+    
+    payload = {
+        "client": {
+            "clientId": "heimdall-scam-detector",
+            "clientVersion": "1.0"
+        },
+        "threatInfo": {
+            "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
+            "platformTypes": ["ANY_PLATFORM"],
+            "threatEntryTypes": ["URL"],
+            "entries": [{"url": url}]
+        }
+    }
+    
+    try:
+        response = requests.post(endpoint, json=payload, timeout=4)
+        
+        # If API key is unauthorized or returns non-200, return Unknown instead of breaking
+        if response.status_code != 200:
+            return "Unknown ⚠️ (API Limit/Error)"
+            
+        result = response.json()
+        if result and "matches" in result:
+            return "Unsafe ❌ (Flagged by Database)"
+            
+        return "Safe ✅"
+    except Exception:
+        # Fails gracefully without stopping the app
+        return "Unknown ⚠️ (Connection Failed)"
 
 def process_image_to_text(image_bytes: bytes) -> str:
     nparr = np.frombuffer(image_bytes, np.uint8)
@@ -32,20 +66,17 @@ def process_image_to_text(image_bytes: bytes) -> str:
     if img is None:
         raise HTTPException(status_code=400, detail="Invalid image file format.")
 
-    # Step 1: QR Code Scanner Fallback Gate
     qr_codes = decode(img)
     if qr_codes:
         return qr_codes[0].data.decode("utf-8")
 
-    # Step 2: OCR Text Extraction Fallback Gate
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ocr_text = pytesseract.image_to_string(gray).strip()
     
     if ocr_text:
         return ocr_text
 
-    # Step 3: Failure Trap (Neither QR nor text found)
-    raise HTTPException(status_code=400, detail="Unable to read image. Please upload a clearer screenshot or enter text manually.")
+    raise HTTPException(status_code=400, detail="Unable to read image. Please upload a clearer screenshot.")
 
 async def run_fraud_analysis(message: str):
     clean_message = message.replace("\u200b", "")
@@ -55,12 +86,18 @@ async def run_fraud_analysis(message: str):
     
     found_links = []
     for text, url in re.findall(md_link_pattern, clean_message):
-        found_links.append(url)
+        if url not in found_links:
+            found_links.append(url)
     for url in re.findall(raw_link_pattern, clean_message):
         if url not in found_links:
             found_links.append(url)
             
-    links_formatted = "\n".join(found_links) if found_links else "None"
+    formatted_links_list = []
+    for link in found_links:
+        status = check_url_safety(link)
+        formatted_links_list.append(f"{link} -> {status}")
+
+    links_formatted = "\n".join(formatted_links_list) if formatted_links_list else "None"
 
     text_only = re.sub(md_link_pattern, '', clean_message)
     text_only = re.sub(raw_link_pattern, '', text_only).strip()
@@ -98,11 +135,21 @@ async def run_fraud_analysis(message: str):
     }
 
 @app.post("/detect")
-async def detect_scam_text(data: ScamRequest):
-    return await run_fraud_analysis(data.text)
+async def detect_scam(
+    text: str = Form(None),
+    file: UploadFile = File(None)
+):
+    combined_message = ""
 
-@app.post("/detect-image")
-async def detect_scam_image(file: UploadFile = File(...)):
-    image_bytes = await file.read()
-    extracted_text = process_image_to_text(image_bytes)
-    return await run_fraud_analysis(extracted_text)
+    if text and text.strip():
+        combined_message += text.strip() + "\n"
+
+    if file and file.filename:
+        image_bytes = await file.read()
+        extracted_text = process_image_to_text(image_bytes)
+        combined_message += "\n" + extracted_text
+
+    if not combined_message.strip():
+        raise HTTPException(status_code=400, detail="Please provide text or upload an image to analyze.")
+
+    return await run_fraud_analysis(combined_message)

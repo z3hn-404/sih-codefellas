@@ -6,79 +6,55 @@
 <body>
     <h1>Scam Detector</h1>
     
-    <!-- Text Submission Form -->
     <form id="scamForm">
-        <textarea id="userInput" rows="6" cols="50" placeholder="Paste message here..."></textarea>
-        <br>
-        <button type="submit">Analyze Text</button>
-    </form>
-
-    <hr style="margin: 20px 0;">
-
-    <!-- Image Upload Form -->
-    <form id="imageForm">
-        <input type="file" id="imageInput" accept="image/*" required>
+        <label for="userInput"><strong>Message Text:</strong></label><br>
+        <textarea id="userInput" rows="4" cols="50" placeholder="Paste message here (optional)..."></textarea>
         <br><br>
-        <button type="submit">Analyze Image</button>
+        
+        <label for="imageInput"><strong>Upload Screenshot / QR Code:</strong></label><br>
+        <input type="file" id="imageInput" accept="image/*">
+        <br><br>
+        
+        <button type="submit">Analyze Content</button>
     </form>
 
     <div id="result-container" style="margin-top: 20px;">
         <h2 id="scamResult"></h2>
-        <p><strong>Extracted Links / QR Payload:</strong></p>
+        <p><strong>Extracted Links & Database Status:</strong></p>
         <pre id="linksResult" style="background: #f4f4f4; padding: 10px;"></pre>
         <p><strong>Analysis Details:</strong></p>
         <p id="detailsResult" style="white-space: pre-line;"></p>
     </div>
 
     <script>
-        async function handleResponse(response) {
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.detail || "Something went wrong.");
-            }
-            document.getElementById('scamResult').innerText = "Scam: " + data.scam;
-            document.getElementById('linksResult').innerText = data.links;
-            document.getElementById('detailsResult').innerText = data.details;
-        }
-
         document.getElementById('scamForm').addEventListener('submit', async function(event) {
             event.preventDefault();
-            const textValue = document.getElementById('userInput').value;
             
-            document.getElementById('scamResult').innerText = "Analyzing text...";
+            const textValue = document.getElementById('userInput').value;
+            const fileInput = document.getElementById('imageInput').files[0];
+
+            const formData = new FormData();
+            if (textValue) formData.append('text', textValue);
+            if (fileInput) formData.append('file', fileInput);
+
+            document.getElementById('scamResult').innerText = "Analyzing simultaneously & checking databases...";
             document.getElementById('linksResult').innerText = "";
             document.getElementById('detailsResult').innerText = "";
 
             try {
                 const response = await fetch('http://127.0.0.1:8000/detect', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: textValue })
-                });
-                await handleResponse(response);
-            } catch (error) {
-                document.getElementById('scamResult').innerText = "Error: " + error.message;
-            }
-        });
-
-        document.getElementById('imageForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            const fileInput = document.getElementById('imageInput').files[0];
-            if (!fileInput) return;
-
-            const formData = new FormData();
-            formData.append('file', fileInput);
-            
-            document.getElementById('scamResult').innerText = "Scanning image (QR -> OCR)...";
-            document.getElementById('linksResult').innerText = "";
-            document.getElementById('detailsResult').innerText = "";
-
-            try {
-                const response = await fetch('http://127.0.0.1:8000/detect-image', {
-                    method: 'POST',
                     body: formData
                 });
-                await handleResponse(response);
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.detail || "Something went wrong.");
+                }
+
+                document.getElementById('scamResult').innerText = "Scam: " + data.scam;
+                document.getElementById('linksResult').innerText = data.links;
+                document.getElementById('detailsResult').innerText = data.details;
             } catch (error) {
                 document.getElementById('scamResult').innerText = "Error: " + error.message;
             }
