@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heimdall | Advanced Threat & Scam Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="ambient-glow"></div>
+    
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo-badge">🛡️</div>
+            <h1>Heimdall Security</h1>
+            <p>Multimodal AI Fraud Analysis & Database Cross-Verification</p>
+        </header>
+
+        <main class="glass-card">
+            <form id="scamForm">
+                <div class="input-group">
+                    <label for="userInput">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        Message Content / Text Payload
+                    </label>
+                    <textarea id="userInput" rows="4" placeholder="Paste suspicious SMS, email, or text description here..."></textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        Screenshot / QR Code Capture
+                    </label>
+                    <div class="file-drop-zone" onclick="document.getElementById('imageInput').click()">
+                        <div class="drop-content">
+                            <span class="upload-icon">📁</span>
+                            <span id="fileNameDisplay">Click to browse or drop threat image here</span>
+                            <span class="file-hint">Supports PNG, JPG, WebP</span>
+                        </div>
+                        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="updateFileName()">
+                    </div>
+                </div>
+                
+                <button type="submit" id="submitBtn">
+                    <span>Initialize Simultaneous Scan</span>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+            </form>
+        </main>
+
+        <section id="resultContainer" class="glass-card result-card hidden">
+            <div class="verdict-banner" id="verdictBanner">
+                <div class="verdict-text">
+                    <span class="label">Threat Evaluation</span>
+                    <h2 id="scamResult">Analyzing...</h2>
+                </div>
+                <div class="probability-pill" id="probabilityBadge">Score: --%</div>
+            </div>
+
+            <div class="result-grid">
+                <div class="result-section">
+                    <h3>🔗 URL Database & Domain Age Audit</h3>
+                    <pre id="linksResult">No links isolated.</pre>
+                </div>
+
+                <div class="result-section">
+                    <h3>🧠 AI Deep Scan Indicators</h3>
+                    <div id="detailsResult" class="details-box"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+:root {
+    --bg: #030712;
+    --card: rgba(17, 24, 39, 0.7);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(56, 189, 248, 0.4);
+    --text: #f3f4f6;
+    --muted: #9ca3af;
+    --accent: #38bdf8;
+    --accent-hover: #0ea5e9;
+    --danger: #f43f5e;
+    --success: #10b981;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.ambient-glow {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(99, 102, 241, 0.04) 50%, transparent 80%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 700px;
+    position: relative;
+    z-index: 1;
+}
+
+.app-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.logo-badge {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+}
+
+.app-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    background: linear-gradient(to right, #ffffff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+}
+
+.app-header p {
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.glass-card {
+    background: var(--card);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: border-color 0.3s ease;
+}
+
+.glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.input-group {
+    margin-bottom: 22px;
+}
+
+.input-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.input-group label svg {
+    color: var(--accent);
+}
+
+textarea {
+    width: 100%;
+    background: rgba(3, 7, 18, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    color: var(--text);
+    font-size: 0.95rem;
+    resize: vertical;
+    transition: all 0.2s;
+}
+
+textarea:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.file-drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(3, 7, 18, 0.4);
+    transition: all 0.2s ease;
+}
+
+.file-drop-zone:hover {
+    border-color: var(--accent);
+    background: rgba(3, 7, 18, 0.7);
+}
+
+.drop-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.upload-icon {
+    font-size: 1.6rem;
+    margin-bottom: 2px;
+}
+
+#fileNameDisplay {
+    font-size: 0.9rem;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.file-hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+button[type="submit"] {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: #030712;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.15s, opacity 0.2s;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+}
+
+button[type="submit"]:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+
+button[type="submit"]:active {
+    transform: translateY(0);
+}
+
+.hidden {
+    display: none;
+}
+
+.result-card {
+    margin-top: 24px;
+    animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.verdict-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(3, 7, 18, 0.6);
+    padding: 18px 20px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+}
+
+.verdict-banner.is-scam {
+    border-left-color: var(--danger);
+    background: rgba(244, 63, 94, 0.05);
+}
+
+.verdict-banner.is-safe {
+    border-left-color: var(--success);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.verdict-text .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.verdict-text h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.probability-pill {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.result-section {
+    margin-bottom: 16px;
+}
+
+.result-section:last-child {
+    margin-bottom: 0;
+}
+
+.result-section h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+pre {
+    background: rgba(3, 7, 18, 0.7);
+    padding: 14px;
+    border-radius: 12px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.82rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    border: 1px solid var(--border);
+    color: #e2e8f0;
+}
+
+.details-box {
+    background: rgba(3, 7, 18, 0.7);
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    border: 1px solid var(--border);
+    white-space: pre-line;
+    color: #cbd5e1;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
